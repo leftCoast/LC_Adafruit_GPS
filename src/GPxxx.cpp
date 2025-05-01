@@ -1,10 +1,15 @@
 #include "GPxxx.h"
 #include <strTools.h>
-#include <debug.h>
+
+
+
+
 
 // **********************************************
 // **************** GPSInHandler ****************
 // **********************************************
+
+char	strBuff[40];
 
 
 GPSInHandler::GPSInHandler(const char* inIDStr)
@@ -13,7 +18,6 @@ GPSInHandler::GPSInHandler(const char* inIDStr)
       
    IDStr = NULL;
    heapStr(&IDStr,inIDStr);
-   ourBoss = NULL;
 }
 
 
@@ -22,15 +26,14 @@ GPSInHandler::~GPSInHandler(void) { freeStr(&IDStr); }
 
 bool GPSInHandler::handleStr(char* inID,GPSInStr* inGPSInStream) {
 
-   Serial.println(inID);
    if (!strcmp(inID,IDStr)) {
       copyStream(inGPSInStream);
-      ourBoss = inGPSInStream;
       readErr = false;
       return true;
    }
    return false;
 }
+
 
 void GPSInHandler::stripChecksum(char* inStr) {
 
@@ -41,6 +44,29 @@ void GPSInHandler::stripChecksum(char* inStr) {
       while(inStr[index]!='\0'&& inStr[index]!='*') index++;
       inStr[index] = '\0';
    } 
+}
+
+
+char*	GPSInHandler::quadToText(quad inQuad) {
+
+	switch(inQuad) {
+		case north	: strcpy(strBuff,"North"); break;
+		case south	: strcpy(strBuff,"South"); break;
+		case east	: strcpy(strBuff,"East"); break;
+		case west	: strcpy(strBuff,"West"); break;
+	}
+	return strBuff;
+}
+
+
+char*	GPSInHandler::qualityToText(fixQuality inQual) {
+
+	switch(inQual) {
+		case fixInvalid	: strcpy(strBuff,"Fix invalid"); break;
+		case fixByGPS	: strcpy(strBuff,"Fix by GPS"); break;
+		case fixByDGPS	: strcpy(strBuff,"Fix by differential GPS"); break;
+	}
+	return strBuff;
 }
 
 
@@ -83,6 +109,10 @@ void GPSInStr::checkHandlers(char* inStr) {
       }
       trace = (GPSInHandler*)trace->getNext();
    }
+   if (!success) {
+   	Serial.print("No handler for : ");
+   	Serial.println(inStr);
+   }
 }
 
 
@@ -99,62 +129,9 @@ void GPSInStr::idle(void) {
    }
 }
 
-void GPSInStr::readVar(int index) {
+void GPSInStr::readVar(int index,bool lastField) {
 
    if (index==0) {
       checkHandlers(mTokenBuff);
    }
-}
-
-
-
-// **********************************************
-// ****************     GPVTG    ****************
-// **********************************************
-
-   
-GPVTG::GPVTG(void)
-   : GPSInHandler("GPVTG") {
-      
-    trueCourse          = 0;
-    magCourse           = 0;
-    groudSpeedKnots     = 0;
-    groundSpeedKilosPH  = 0;
-}
-
-   
-GPVTG::~GPVTG(void) {  }
-
-void GPVTG::readVar(int index) {
-   
-   if (!readErr) {
-      switch(index) {
-         case 1   : tC = atof(mTokenBuff); break;
-         case 2   : if (strcmp(mTokenBuff,"T")) readErr = true; break;
-         case 3   : mC = atof(mTokenBuff); break;
-         case 4   : if (strcmp(mTokenBuff,"M")) readErr = true; break;
-         case 5   : gSKn = atof(mTokenBuff); break;
-         case 6   : if (strcmp(mTokenBuff,"N")) readErr = true; break;
-         case 7   : gSKilo = atof(mTokenBuff); break;
-         case 8   :
-            stripChecksum(mTokenBuff);
-            if (!strcmp(mTokenBuff,"K")) {
-               trueCourse          = tC;
-               magCourse           = mC;
-               groudSpeedKnots     = gSKn;
-               groundSpeedKilosPH  = gSKilo; 
-            }
-            showData();
-         break;
-      }
-   }
-}
-
-          
-void GPVTG::showData(void) {
-
-   Serial.print("True Course :\t");Serial.print(trueCourse);Serial.println("\tDegrees");
-   Serial.print("Mag Course  :\t");Serial.print(magCourse);Serial.println("\tDegrees");
-   Serial.print("Groud Speed :\t");Serial.print(groudSpeedKnots);Serial.println("\tKnots");
-   Serial.print("Groud Speed :\t");Serial.print(groundSpeedKilosPH);Serial.println("\tKilometers per hour"); 
 }
