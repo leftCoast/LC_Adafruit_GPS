@@ -77,10 +77,7 @@ class GPGGA :  public GPSInHandler {
             int 			hours;
             int 			min;
             float 		sec;
-            float 		lattitide;
-            quad			northSouth;
-            float 		longitutde;
-            quad			eastWest;
+            gPosition	latLon;
             fixQuality	qualVal;
             int			numSatellites;
             float			HDOP;					// Relative accuracy of horizontal position.
@@ -95,10 +92,7 @@ class GPGGA :  public GPSInHandler {
 				int 			h;
             int 			m;
             float 		s;
-            float 		lat;
-            quad			NS;
-            float 		lon;
-            quad			EW;
+            gPosition	pos;
             fixQuality	qual;
             int			numSat;
             float			Acc;
@@ -187,6 +181,56 @@ class GPGSV :  public GPSInHandler {
 				satData	tempData;
 				linkList	workingSatList;
 };
+
+
+
+// **********************************************
+// ****************     GPRMC    ****************
+// **********************************************
+
+
+class GPRMC :  public GPSInHandler {
+
+   public:
+            GPRMC(void);
+   virtual  ~GPRMC(void);
+
+   virtual  void  showData(void);
+
+				int			hours;
+            int			min;
+            float			sec;
+            bool			valid;
+            gPosition	latLon;
+            float			groundSpeed;
+            float			trueCourse;
+            int			year;
+            int			month;
+            int			day;
+            float			variation;
+            quad			vEastWest;
+            
+            
+	protected:
+	virtual  void readVar(int index,bool lastField);
+       		
+       		int			h;
+				int			mn;
+				float			s;
+				bool			val;
+				gPosition	pos;
+				float			knots;
+				float			tCourse;
+				int			y;
+				int			mo;
+				int			d;
+				float			var;
+				quad			EW;      
+};
+
+
+            
+
 
 
 #endif

@@ -73,10 +73,6 @@ GPGGA::GPGGA(void)
 	hours				= 0;
 	min				= 0;
 	sec				= 0;
-	lattitide		= 0;
-	northSouth		= north;
-	longitutde		= 0;
-	eastWest			= east;
 	qualVal			= fixInvalid;
 	numSatellites	= 0;
 	HDOP				= 0;
@@ -109,26 +105,10 @@ void GPGGA::readVar(int index,bool lastField) {
 				ptr = &(mTokenBuff[4]);
 				s = atof(ptr);	
 			break;
-			case 2	: lat = atof(mTokenBuff); break;
-			case 3	:
-				if (!strcmp(mTokenBuff,"N")) {
-					NS = north;
-				} else if (!strcmp(mTokenBuff,"S")) {
-					NS = south;
-				} else {
-					readErr = true;
-				}
-			break;
-			case 4	: lon = atof(mTokenBuff); break;
-			case 5	:
-				if (!strcmp(mTokenBuff,"E")) {
-					EW = east;
-				} else if (!strcmp(mTokenBuff,"W")) {
-					EW = west;
-				} else {
-					readErr = true;
-				}
-			break;
+			case 2	: pos.setLatValue(mTokenBuff); break;
+			case 3	: pos.setLatQuad(mTokenBuff); break;
+			case 4	: pos.setLonValue(mTokenBuff); break;
+			case 5	: pos.setLonQuad(mTokenBuff); break;
 			case 6	:
 				rawQ = atoi(mTokenBuff);
 				if (rawQ==0) {
@@ -154,10 +134,7 @@ void GPGGA::readVar(int index,bool lastField) {
 				hours				= h;
 				min				= m;
 				sec				= s;
-				lattitide		= lat;
-				northSouth		= NS;
-				longitutde		= lon;
-				eastWest			= EW;
+				latLon.copyPos(&pos);
 				qualVal			= qual;
 				numSatellites	= numSat;
 				HDOP				= Acc;
@@ -174,11 +151,16 @@ void GPGGA::readVar(int index,bool lastField) {
 
 void GPGGA::showData(void) {
 	
+	char degStr[10];
+
+
 	Serial.println("-------------------------------");
 	Serial.print("Time :\t\t\t");Serial.print(hours);Serial.print(":");
 	Serial.print(min);Serial.print(":");Serial.println(sec,2);
-	Serial.print("Lattitide :\t\t");Serial.print(lattitide,2);Serial.print(" ");Serial.println(quadToText(northSouth));
-	Serial.print("Longitutde :\t\t");Serial.print(longitutde,2);Serial.print(" ");Serial.println(quadToText(eastWest));
+	sprintf(degStr,"%3u",latLon.getLatDeg());
+	Serial.print("Lattitide :\t\t");Serial.print(degStr);Serial.print(" Deg.\t");Serial.print(latLon.getLatMin(),2);Serial.print(" Min.\t");Serial.println(latLon.getLatQuadStr());
+	sprintf(degStr,"%3u",latLon.getLonDeg());
+	Serial.print("Longitutde :\t\t");Serial.print(degStr);Serial.print(" Deg.\t");Serial.print(latLon.getLonMin(),2);Serial.print(" Min.\t");Serial.println(latLon.getLonQuadStr());
 	Serial.print("Fix quality :\t\t");Serial.println(qualityToText(qualVal));
 	Serial.print("Number of satellites :\t");Serial.println(numSatellites);
 	Serial.print("HDOP value :\t\t");Serial.println(HDOP,2);		
@@ -446,3 +428,140 @@ void GPGSV::showData(void) {
 	Serial.println("-------------------------------");
 }
 				
+				
+				
+// **********************************************
+// ****************     GPRMC    ****************
+// **********************************************
+
+
+//Recommended minimum specific GPS/Transit data
+GPRMC::GPRMC(void)
+	: GPSInHandler("GPRMC") { 
+
+	hours			= 0;
+	min			= 0;
+	sec			= 0;
+	valid			= false;
+	groundSpeed	= 0;
+	trueCourse	= 0;
+	year			= 2025;
+	month			= 5;
+	day			= 2;
+	variation	= 0;
+	vEastWest	= west;
+}
+
+
+GPRMC::~GPRMC(void) {  }
+
+
+void GPRMC::readVar(int index,bool lastField) {
+
+	char	temp[10];
+	
+	if (readErr) return;											// Only do this if there have been no errors;       		
+	switch(index) {
+		case 1	:													// hhmmss.ss
+			temp[0] = mTokenBuff[0];
+			temp[1] = mTokenBuff[1];
+			temp[2] = '\0';
+			h = atoi(temp);
+			temp[0] = mTokenBuff[2];
+			temp[1] = mTokenBuff[3];
+			temp[2] = '\0';
+			mn = atoi(temp);
+			strcpy(temp,&(mTokenBuff[4]));
+			s = atof(temp);
+		break;
+		case 2	:
+			val = false;
+			if (!strcmp(mTokenBuff,"A")) {
+				val = true;
+			}
+		break;
+		case 3	: pos.setLatValue(mTokenBuff); break;
+		case 4	: pos.setLatQuad(mTokenBuff); break;
+		case 5	: pos.setLonValue(mTokenBuff); break;
+		case 6	: pos.setLonQuad(mTokenBuff); break;
+		case 7	: knots = atof(mTokenBuff); break;
+		case 8	: tCourse = atof(mTokenBuff); break;
+		case 9	:													// ddmmyy
+			temp[0] = mTokenBuff[0];
+			temp[1] = mTokenBuff[1];
+			temp[2] = '\0';
+			d = atoi(temp);
+			temp[0] = mTokenBuff[2];
+			temp[1] = mTokenBuff[3];
+			temp[2] = '\0';
+			mo = atoi(temp);
+			temp[0] = mTokenBuff[4];
+			temp[1] = mTokenBuff[5];
+			temp[2] = '\0';
+			y = atoi(temp);
+		break;
+		case 10	: var = atof(mTokenBuff); break;
+		case 11	:
+			upCase(mTokenBuff);
+			EW = west;
+			if (!strcmp(mTokenBuff,"E")||!strcmp(mTokenBuff,"EAST")) {
+				EW = east;
+			}
+			hours			= h;
+			min			= mn;
+			sec			= s;
+			valid			= val;
+			groundSpeed	= knots;
+			trueCourse	= tCourse;
+			year			= y;
+			month			= mo;
+			day			= d;
+			variation	= var;
+			vEastWest	= EW; 
+			showData(); 
+		break;
+	}
+}  
+
+
+
+void GPRMC::showData(void) {
+
+	char degStr[10];
+
+
+	Serial.println("-------------------------------");
+	Serial.println("Recommended minimum specific GPS/Transit data");
+	Serial.print("Time :\t\t");Serial.print(hours);Serial.print(":");
+	Serial.print(min);Serial.print(":");Serial.println(sec,2);
+	Serial.print("Reading valid :\t");
+	if (valid) {
+		Serial.println("True");
+	} else {
+		Serial.println("False");
+	}
+	sprintf(degStr,"%3u",latLon.getLatDeg());
+	Serial.print("Lattitide :\t");Serial.print(degStr);Serial.print(" Deg.\t");Serial.print(latLon.getLatMin(),2);Serial.print(" Min.\t");Serial.println(latLon.getLatQuadStr());
+	sprintf(degStr,"%3u",latLon.getLonDeg());
+	Serial.print("Longitutde :\t");Serial.print(degStr);Serial.print(" Deg.\t");Serial.print(latLon.getLonMin(),2);Serial.print(" Min.\t");Serial.println(latLon.getLonQuadStr());
+	Serial.print("Groud Speed :\t");Serial.print(groundSpeed);Serial.println("\tKnots");
+	Serial.print("True Course :\t");Serial.print(trueCourse);Serial.println("\tDegrees");
+  	Serial.print("Date :\t\t");Serial.print(month);Serial.print("/");
+	Serial.print(day);Serial.print("/");Serial.println(year);
+	Serial.print("Variation :\t");Serial.print(variation);Serial.print("\t");
+	if (vEastWest==east) {
+		Serial.println("East");
+	} else {
+		Serial.println("West");
+	}
+	Serial.println("-------------------------------");
+}
+
+
+
+// **********************************************
+// ****************     GP???    ****************
+// **********************************************
+
+
+
