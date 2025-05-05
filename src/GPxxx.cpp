@@ -236,8 +236,8 @@ char* gPosition::getLatStr(void) {
 	strcat(outStr,tempStr);
 	strcat(outStr,".");
 	lMinDec = latMin - lMin;
-	lMinOut = round(lMinDec * 100);
-	sprintf(tempStr,"%02u",lMinOut);
+	lMinOut = round(lMinDec * 10000);
+	sprintf(tempStr,"%04u",lMinOut);
 	strcat(outStr,tempStr);
 	return outStr;
 }
@@ -268,8 +268,8 @@ char* gPosition::getLonStr(void) {
 	strcat(outStr,tempStr);
 	strcat(outStr,".");
 	lMinDec = lonMin - lMin;
-	lMinOut = round(lMinDec * 100);
-	sprintf(tempStr,"%02u",lMinOut);
+	lMinOut = round(lMinDec * 10000);
+	sprintf(tempStr,"%04u",lMinOut);
 	strcat(outStr,tempStr);
 	return outStr;
 }
@@ -297,9 +297,43 @@ int gPosition::getLonDeg(void)	{ return lonDeg; }
 float gPosition::getLonMin(void)	{ return lonMin; }
 
 quad gPosition::getLonQuad(void)	{ return lonQuad; }
-				
-				
-				
+
+
+// For NMEA2k messages.				
+int32_t  gPosition::getLatAsInt32(void) {	
+
+	double	temp;
+	int32_t	result;
+	
+	temp = latMin/60.0;
+	temp = temp + latDeg;
+	temp = temp * 10000000;
+	if (latQuad==south) {
+		temp = temp * -1;
+	}
+	result = round(temp);
+	return result;
+}
+
+
+// For NMEA2k messages.
+int32_t  gPosition::getLonAsInt32(void) {
+		
+	double	temp;
+	int32_t	result;
+	
+	temp = lonMin/60.0;
+	temp = temp + lonDeg;
+	temp = temp * 10000000;
+	if (latQuad==west) {
+		temp = temp * -1;
+	}
+	result = round(temp);
+	return result;
+}
+
+
+		
 // **********************************************
 // **************** GPSInHandler ****************
 // **********************************************

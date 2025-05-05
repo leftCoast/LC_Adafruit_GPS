@@ -60,49 +60,51 @@ class gPosition {
 				gPosition(void);
 	virtual	~gPosition(void);
 	
-				bool	valid(void);
+				bool		valid(void);
 				
-				void	copyPos(gPosition* aLatLon);
+				void		copyPos(gPosition* aLatLon);
 				
-				void	setLatValue(const char* inLatStr);
-				void	setLatQuad(const char* inQuad);
-				void	setLonValue(const char* inLonStr);
-				void	setLonQuad(const char* inQuad);
+				void		setLatValue(const char* inLatStr);
+				void		setLatQuad(const char* inQuad);
+				void		setLonValue(const char* inLonStr);
+				void		setLonQuad(const char* inQuad);
 				
-				void	setPosValues(const char* latStr,const char* lonStr);
-				void	setQuads(const char*  inLatQuad,const char*  inLonQuad);
+				void		setPosValues(const char* latStr,const char* lonStr);
+				void		setQuads(const char*  inLatQuad,const char*  inLonQuad);
 				
-				void	setLatValue(int inLatDeg, float inLatMin);
-				void	setLatQuad(quad inLatQuad);
-				void	setLonValue(int inLonDeg, float inLonMin);
-				void	setLonQuad(quad inLonQuad);
-				void	setQuads(quad inLatQuad,quad inLonQuad);
+				void		setLatValue(int inLatDeg, float inLatMin);
+				void		setLatQuad(quad inLatQuad);
+				void		setLonValue(int inLonDeg, float inLonMin);
+				void		setLonQuad(quad inLonQuad);
+				void		setQuads(quad inLatQuad,quad inLonQuad);
 				
-				void	setPosition(int inLatDeg, float inLatMin, quad inLatQuad, int inLonDeg, float inLonMin, quad inLonQuad);
+				void		setPosition(int inLatDeg, float inLatMin, quad inLatQuad, int inLonDeg, float inLonMin, quad inLonQuad);
 				
-				float	trueBearingTo(gPosition* inDest);
-				float	distanceTo(gPosition* inDest);
+				float		trueBearingTo(gPosition* inDest);
+				float		distanceTo(gPosition* inDest);
 				
-				char*	getLatStr(void);
-				char*	getLatQuadStr(void);
-				char*	getLonStr(void);
-				char*	getLonQuadStr(void);
+				char*		getLatStr(void);
+				char*		getLatQuadStr(void);
+				char*		getLonStr(void);
+				char*		getLonQuadStr(void);
 				
-				int	getLatDeg(void);
-				float	getLatMin(void);
-				quad	getLatQuad(void);
-				int	getLonDeg(void);
-				float	getLonMin(void);
-				quad	getLonQuad(void);
+				int		getLatDeg(void);
+				float		getLatMin(void);
+				quad		getLatQuad(void);
+				int		getLonDeg(void);
+				float		getLonMin(void);
+				quad		getLonQuad(void);
+				int32_t	getLatAsInt32(void);	// For NMEA2k messages.
+				int32_t	getLonAsInt32(void);	// For NMEA2k messages.
 				
 	protected:
-				int	latDeg;
-				float	latMin;
-				quad	latQuad;
-				int	lonDeg;
-				float	lonMin;
-				quad	lonQuad;
-				char	outStr[G_POS_BUFF_BYTES];
+				int		latDeg;
+				float		latMin;
+				quad		latQuad;
+				int		lonDeg;
+				float		lonMin;
+				quad		lonQuad;
+				char		outStr[G_POS_BUFF_BYTES];
 };
 
 
