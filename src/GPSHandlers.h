@@ -19,7 +19,9 @@ class GP??? :  public GPSInHandler {
             GP???(void);
    virtual  ~GP???(void);
 
+#ifdef SHOW_DATA
    virtual  void  showData(void);
+#endif
 
 	protected:
 	virtual  void readVar(int index,bool lastField);
@@ -41,7 +43,9 @@ class GPVTG :  public GPSInHandler {
             GPVTG(void);
    virtual  ~GPVTG(void);
 
+#ifdef SHOW_DATA
    virtual  void  showData(void);
+#endif
             
             float trueCourse;
             float magCourse;
@@ -72,7 +76,9 @@ class GPGGA :  public GPSInHandler {
             GPGGA(void);
    virtual  ~GPGGA(void);
 
+#ifdef SHOW_DATA
    virtual  void  showData(void);
+#endif
 
             int 			hours;
             int 			min;
@@ -116,7 +122,9 @@ class GPGSA :  public GPSInHandler {
             GPGSA(void);
    virtual  ~GPGSA(void);
 
+#ifdef SHOW_DATA
    virtual  void  showData(void);
+#endif
    
    			mode		operationMode;
 				modeII	fixType;
@@ -164,7 +172,10 @@ class GPGSV :  public GPSInHandler {
    virtual  ~GPGSV(void);
 	
 	virtual  bool  handleStr(char* inID,GPSInStr* inGPSInStream);
+
+#ifdef SHOW_DATA
    virtual  void  showData(void);
+#endif
 				
 				linkList	satDataList;
 					
@@ -189,13 +200,16 @@ class GPGSV :  public GPSInHandler {
 // **********************************************
 
 
+// Recommended minimum specific GPS/Transit data
 class GPRMC :  public GPSInHandler {
 
    public:
             GPRMC(void);
    virtual  ~GPRMC(void);
-
+   
+#ifdef SHOW_DATA
    virtual  void  showData(void);
+#endif
 
 				int			hours;
             int			min;

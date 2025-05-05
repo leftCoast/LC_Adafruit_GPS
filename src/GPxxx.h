@@ -6,6 +6,9 @@
 #include <idlers.h>
 #include <debug.h>
 
+//#define SHOW_DATA
+
+
 extern char	strBuff[];
 
 class GPSInStr;

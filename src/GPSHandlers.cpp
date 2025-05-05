@@ -49,7 +49,8 @@ void GPVTG::readVar(int index,bool lastField) {
    }
 }
 
-          
+
+#ifdef SHOW_DATA          
 void GPVTG::showData(void) {
 
 	Serial.println("-------------------------------");
@@ -59,7 +60,7 @@ void GPVTG::showData(void) {
    Serial.print("Groud Speed :\t");Serial.print(groundSpeedKilosPH);Serial.println("\tKilometers per hour");
    Serial.println("-------------------------------");
 }
-
+#endif
 
 
 // **********************************************
@@ -149,6 +150,7 @@ void GPGGA::readVar(int index,bool lastField) {
 }
 
 
+#ifdef SHOW_DATA
 void GPGGA::showData(void) {
 	
 	char degStr[10];
@@ -170,7 +172,7 @@ void GPGGA::showData(void) {
 	Serial.print("Diff. station ID :\t");Serial.println(DGPSStationID);
 	Serial.println("-------------------------------");
 }
-
+#endif
 
 
 // **********************************************
@@ -247,7 +249,7 @@ void GPGSA::readVar(int index,bool lastField) {
 }
 				
 		
-
+#ifdef SHOW_DATA
 void GPGSA::showData(void) {
    	
    Serial.println("-------------------------------");		
@@ -273,7 +275,7 @@ void GPGSA::showData(void) {
 	Serial.print("VDOP :\t\t");Serial.println(VDOP,1);
 	Serial.println("-------------------------------");
 }		
-
+#endif
 
 	
 // **********************************************
@@ -406,7 +408,7 @@ void GPGSV::readVar(int index,bool lastField) {
 }
 		
 		  
-				
+#ifdef SHOW_DATA				
 void GPGSV::showData(void) {
 
 	int		numItems;
@@ -427,7 +429,7 @@ void GPGSV::showData(void) {
 	}
 	Serial.println("-------------------------------");
 }
-				
+#endif				
 				
 				
 // **********************************************
@@ -524,7 +526,7 @@ void GPRMC::readVar(int index,bool lastField) {
 }  
 
 
-
+#ifdef SHOW_DATA
 void GPRMC::showData(void) {
 
 	char degStr[10];
@@ -556,7 +558,7 @@ void GPRMC::showData(void) {
 	}
 	Serial.println("-------------------------------");
 }
-
+#endif
 
 
 // **********************************************
