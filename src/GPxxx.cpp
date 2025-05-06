@@ -299,18 +299,41 @@ float gPosition::getLonMin(void)	{ return lonMin; }
 quad gPosition::getLonQuad(void)	{ return lonQuad; }
 
 
+double gPosition::getLatAsDbl(void) {
+	
+	double	result;
+	
+	result = latMin/60.0;
+	result = result + latDeg;
+	if (latQuad==south) {
+		result = result * -1;
+	}
+	return result;
+}
+
+
+double gPosition::getLonAsDbl(void) {
+
+	double	result;
+	
+	result = lonMin/60.0;
+	result = result + lonDeg;
+	if (lonQuad==west) {
+		result = result * -1;
+	}
+	return result;
+}
+
+
+
 // For NMEA2k messages.				
 int32_t  gPosition::getLatAsInt32(void) {	
 
 	double	temp;
 	int32_t	result;
 	
-	temp = latMin/60.0;
-	temp = temp + latDeg;
+	temp = getLatAsDbl();
 	temp = temp * 10000000;
-	if (latQuad==south) {
-		temp = temp * -1;
-	}
 	result = round(temp);
 	return result;
 }
@@ -322,12 +345,8 @@ int32_t  gPosition::getLonAsInt32(void) {
 	double	temp;
 	int32_t	result;
 	
-	temp = lonMin/60.0;
-	temp = temp + lonDeg;
+	temp = getLonAsDbl();
 	temp = temp * 10000000;
-	if (latQuad==west) {
-		temp = temp * -1;
-	}
 	result = round(temp);
 	return result;
 }

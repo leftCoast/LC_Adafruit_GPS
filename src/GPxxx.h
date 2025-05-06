@@ -94,8 +94,10 @@ class gPosition {
 				int		getLonDeg(void);
 				float		getLonMin(void);
 				quad		getLonQuad(void);
-				int32_t	getLatAsInt32(void);	// For NMEA2k messages.
-				int32_t	getLonAsInt32(void);	// For NMEA2k messages.
+				double	getLatAsDbl(void);		// These last four kinda' need a 32 bit processer.
+				double	getLonAsDbl(void);		// Otherwise you may run into rounding errors.
+				int32_t	getLatAsInt32(void);		// For NMEA2k messages.
+				int32_t	getLonAsInt32(void);		// For NMEA2k messages.
 				
 	protected:
 				int		latDeg;
