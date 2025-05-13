@@ -128,6 +128,7 @@ class GPGSA :  public GPSInHandler {
    
    			mode		operationMode;
 				modeII	fixType;
+				int		numSatellites;
 				int		SVID[11];
 				float		PDOP;
 				float		HDOP;
@@ -141,7 +142,7 @@ class GPGSA :  public GPSInHandler {
 				int		ID[11];
 				float		P;
 				float		H;
-				float		V;           
+				float		V;
 };
 
 
@@ -221,7 +222,7 @@ class GPRMC :  public GPSInHandler {
             int			year;
             int			month;
             int			day;
-            float			variation;
+            float			magVar;
             quad			vEastWest;
             
             
@@ -238,7 +239,7 @@ class GPRMC :  public GPSInHandler {
 				int			y;
 				int			mo;
 				int			d;
-				float			var;
+				float			mVar;
 				quad			EW;      
 };
 

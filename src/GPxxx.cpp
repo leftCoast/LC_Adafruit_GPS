@@ -352,6 +352,30 @@ int32_t  gPosition::getLonAsInt32(void) {
 }
 
 
+// For NMEA2k messages.
+int64_t	gPosition::getLatAsInt64(void) {
+	
+	double	temp;
+	int64_t	result;
+	
+	temp = getLatAsDbl();
+	temp = temp * 10000000000000000.0;
+	result = round(temp);
+	return result;
+}
+
+
+// For NMEA2k messages.
+int64_t	gPosition::getLonAsInt64(void) {
+	
+	double	temp;
+	int64_t	result;
+	
+	temp = getLonAsDbl();
+	temp = temp * 10000000000000000.0;
+	result = round(temp);
+	return result;
+}
 		
 // **********************************************
 // **************** GPSInHandler ****************

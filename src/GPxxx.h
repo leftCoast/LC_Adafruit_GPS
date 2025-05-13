@@ -98,6 +98,8 @@ class gPosition {
 				double	getLonAsDbl(void);		// Otherwise you may run into rounding errors.
 				int32_t	getLatAsInt32(void);		// For NMEA2k messages.
 				int32_t	getLonAsInt32(void);		// For NMEA2k messages.
+				int64_t	getLatAsInt64(void);		// For NMEA2k messages.
+				int64_t	getLonAsInt64(void);		// For NMEA2k messages.
 				
 	protected:
 				int		latDeg;

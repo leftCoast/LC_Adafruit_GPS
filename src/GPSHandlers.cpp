@@ -201,6 +201,7 @@ GPGSA::~GPGSA(void) {  }
 void GPGSA::readVar(int index,bool lastField) {
 
 	int	rawMode;
+	int	count;
 	
 	if (!readErr) {
 		if (index>=3 && index <=14) {
@@ -236,9 +237,14 @@ void GPGSA::readVar(int index,bool lastField) {
 				V = atof(mTokenBuff);
 				operationMode	= M1;
 				fixType			= M2;
+				count = 0;
 				for(int i=0;i<11;i++) {
 					SVID[i] = ID[i];
+					if (SVID[i]) {
+						count++;
+					}
 				}
+				numSatellites = count;
 				PDOP	= P;
 				HDOP	= H;
 				VDOP	= V;
@@ -260,6 +266,7 @@ void GPGSA::showData(void) {
 	if (fixType==noFix) Serial.println("No Fix");
 	else if (fixType==twoD) Serial.println("2D fix");
 	else Serial.println("3D fix");
+	Serial.print("Satellite count :\t");  Serial.println(numSatellites);
 	Serial.print("Satellite IDs :\t");
 	for(int i=0;i<11;i++) {
 		if (SVID[i]) {
@@ -450,7 +457,7 @@ GPRMC::GPRMC(void)
 	year			= 2025;
 	month			= 5;
 	day			= 2;
-	variation	= 0;
+	magVar		= 0;
 	vEastWest	= west;
 }
 
@@ -502,7 +509,7 @@ void GPRMC::readVar(int index,bool lastField) {
 			temp[2] = '\0';
 			y = atoi(temp);
 		break;
-		case 10	: var = atof(mTokenBuff); break;
+		case 10	: mVar = atof(mTokenBuff); break;
 		case 11	:
 			upCase(mTokenBuff);
 			EW = west;
@@ -518,7 +525,7 @@ void GPRMC::readVar(int index,bool lastField) {
 			year			= y;
 			month			= mo;
 			day			= d;
-			variation	= var;
+			magVar		= mVar;
 			vEastWest	= EW; 
 			showData(); 
 		break;
@@ -550,7 +557,7 @@ void GPRMC::showData(void) {
 	Serial.print("True Course :\t");Serial.print(trueCourse);Serial.println("\tDegrees");
   	Serial.print("Date :\t\t");Serial.print(month);Serial.print("/");
 	Serial.print(day);Serial.print("/");Serial.println(year);
-	Serial.print("Variation :\t");Serial.print(variation);Serial.print("\t");
+	Serial.print("Mag variation :\t");Serial.print(magVar);Serial.print("\t");
 	if (vEastWest==east) {
 		Serial.println("East");
 	} else {
