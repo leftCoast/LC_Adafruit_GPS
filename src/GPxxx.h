@@ -44,7 +44,7 @@ enum modeII {
 
 extern bool	checkLatDeg(int degrees);
 extern bool	checkLonDeg(int degrees);
-extern bool	checkMin(float minutes);
+extern bool	checkMin(double minutes);
 
 
 
@@ -72,16 +72,16 @@ class gPosition {
 				void		setPosValues(const char* latStr,const char* lonStr);
 				void		setQuads(const char*  inLatQuad,const char*  inLonQuad);
 				
-				void		setLatValue(int inLatDeg, float inLatMin);
+				void		setLatValue(int inLatDeg, double inLatMin);
 				void		setLatQuad(quad inLatQuad);
-				void		setLonValue(int inLonDeg, float inLonMin);
+				void		setLonValue(int inLonDeg, double inLonMin);
 				void		setLonQuad(quad inLonQuad);
 				void		setQuads(quad inLatQuad,quad inLonQuad);
 				
-				void		setPosition(int inLatDeg, float inLatMin, quad inLatQuad, int inLonDeg, float inLonMin, quad inLonQuad);
+				void		setPosition(int inLatDeg, double inLatMin, quad inLatQuad, int inLonDeg, double inLonMin, quad inLonQuad);
 				
-				float		trueBearingTo(gPosition* inDest);
-				float		distanceTo(gPosition* inDest);
+				double	trueBearingTo(gPosition* inDest);
+				double	distanceTo(gPosition* inDest);
 				
 				char*		getLatStr(void);
 				char*		getLatQuadStr(void);
@@ -89,10 +89,10 @@ class gPosition {
 				char*		getLonQuadStr(void);
 				
 				int		getLatDeg(void);
-				float		getLatMin(void);
+				double	getLatMin(void);
 				quad		getLatQuad(void);
 				int		getLonDeg(void);
-				float		getLonMin(void);
+				double	getLonMin(void);
 				quad		getLonQuad(void);
 				double	getLatAsDbl(void);		// These last four kinda' need a 32 bit processer.
 				double	getLonAsDbl(void);		// Otherwise you may run into rounding errors.
@@ -103,10 +103,10 @@ class gPosition {
 				
 	protected:
 				int		latDeg;
-				float		latMin;
+				double	latMin;
 				quad		latQuad;
 				int		lonDeg;
-				float		lonMin;
+				double	lonMin;
 				quad		lonQuad;
 				char		outStr[G_POS_BUFF_BYTES];
 };

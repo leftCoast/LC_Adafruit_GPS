@@ -6,7 +6,7 @@ bool	checkLatDeg(int degrees) { return (degrees>=0 && degrees<90); }
 
 bool	checkLonDeg(int degrees) { return (degrees>=0 && degrees<180); }
 
-bool	checkMin(float minutes) { return (minutes>=0 && minutes<60); }
+bool	checkMin(double minutes) { return (minutes>=0 && minutes<60); }
 
 
 
@@ -154,7 +154,7 @@ void gPosition::setQuads(const char*  inLatQuad,const char*  inLonQuad) {
 }
 
 
-void gPosition::setLatValue(int inLatDeg, float inLatMin) {
+void gPosition::setLatValue(int inLatDeg, double inLatMin) {
 
 	if (checkLatDeg(inLatDeg)&&checkMin(inLatMin)) {
 		latDeg = inLatDeg;
@@ -171,7 +171,7 @@ void gPosition::setLatQuad(quad inLatQuad) {
 }
 
 
-void gPosition::setLonValue(int inLonDeg, float inLonMin) {
+void gPosition::setLonValue(int inLonDeg, double inLonMin) {
 
 	if (checkLonDeg(inLonDeg)&&checkMin(inLonMin)) {
 		lonDeg = inLonDeg;
@@ -195,7 +195,7 @@ void gPosition::setQuads(quad inLatQuad,quad inLonQuad) {
 }
 
 
-void gPosition::setPosition(int inLatDeg, float inLatMin, quad inLatQuad, int inLonDeg, float inLonMin, quad inLonQuad) {
+void gPosition::setPosition(int inLatDeg, double inLatMin, quad inLatQuad, int inLonDeg, double inLonMin, quad inLonQuad) {
 
 	setLatValue(inLatDeg,inLatMin);
 	setLonValue(inLonDeg,inLonMin);
@@ -203,14 +203,14 @@ void gPosition::setPosition(int inLatDeg, float inLatMin, quad inLatQuad, int in
 }
 
 
-float gPosition::trueBearingTo(gPosition* inDest) { 
+double gPosition::trueBearingTo(gPosition* inDest) { 
 
 	Serial.println("I have no idea how to do that.");
 	return 0;
 }
 
 
-float gPosition::distanceTo(gPosition* inDest) {
+double gPosition::distanceTo(gPosition* inDest) {
 
 	Serial.println("You're joking right?");
 	return 0;
@@ -226,7 +226,7 @@ char* gPosition::getLatStr(void) {
 
 	char	tempStr[G_POS_BUFF_BYTES];
 	int	lMin;
-	float	lMinDec;
+	double	lMinDec;
 	int	lMinOut;
 	
 	sprintf(tempStr,"%03u",latDeg);
@@ -258,7 +258,7 @@ char* gPosition::getLonStr(void) {
 
 	char	tempStr[G_POS_BUFF_BYTES];
 	int	lMin;
-	float	lMinDec;
+	double	lMinDec;
 	int	lMinOut;
 	
 	sprintf(tempStr,"%03u",lonDeg);
@@ -288,13 +288,13 @@ char* gPosition::getLonQuadStr(void) {
 
 int gPosition::getLatDeg(void)	{ return latDeg; }
 
-float gPosition::getLatMin(void)	{ return latMin; }
+double gPosition::getLatMin(void)	{ return latMin; }
 
 quad gPosition::getLatQuad(void)	{ return latQuad; }
 
 int gPosition::getLonDeg(void)	{ return lonDeg; }
 
-float gPosition::getLonMin(void)	{ return lonMin; }
+double gPosition::getLonMin(void)	{ return lonMin; }
 
 quad gPosition::getLonQuad(void)	{ return lonQuad; }
 
