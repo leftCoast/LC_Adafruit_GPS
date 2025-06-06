@@ -1,6 +1,10 @@
 #include "GPxxx.h"
 #include <strTools.h>
 
+//#define RADIUS_EARTH_KNOTS  3443.98		// Calculated this from www map.
+//#define RADIUS_EARTH_KNOTS  3440			// Saw this on google earth.
+#define RADIUS_EARTH_KNOTS  3443.92			// Google's unit calculator gives this.
+
 
 bool	checkLatDeg(int degrees) { return (degrees>=0 && degrees<90); }
 
@@ -8,7 +12,11 @@ bool	checkLonDeg(int degrees) { return (degrees>=0 && degrees<180); }
 
 bool	checkMin(double minutes) { return (minutes>=0 && minutes<60); }
 
+double rad2deg(double angleRad) { return angleRad*180/M_PI; }
 
+double deg2rad(double angleDeg) { return angleDeg*M_PI/180; }
+
+double hav(double theta) { return ((1-cos(theta))/2.0); }		// Haversine function
 
 // **********************************************
 // ****************  gPosition  *****************
@@ -154,6 +162,37 @@ void gPosition::setQuads(const char*  inLatQuad,const char*  inLonQuad) {
 }
 
 
+void gPosition::setPos(double inLat, double inLon) {
+
+	int		latDeg;
+	double	latMin;
+	quad		latQuad;
+	int		lonDeg;
+	double	lonMin;
+	quad		lonQuad;
+	
+	latDeg = trunc(inLat);
+	latDeg = abs(latDeg);
+	latMin = abs(inLat) - latDeg;
+	latMin = latMin * 60.0;
+	if (inLat>=0) {
+		latQuad = north;
+	} else {
+		latQuad = south;
+	}
+	lonDeg = trunc(inLon);
+	lonDeg = abs(lonDeg);
+	lonMin = abs(inLon) - lonDeg;
+	lonMin = lonMin * 60.0;
+	if (inLon>=0) {
+		lonQuad = east;
+	} else {
+		lonQuad = west;
+	}
+	setPosition(latDeg,latMin,latQuad,lonDeg,lonMin,lonQuad);
+}
+
+
 void gPosition::setLatValue(int inLatDeg, double inLatMin) {
 
 	if (checkLatDeg(inLatDeg)&&checkMin(inLatMin)) {
@@ -203,17 +242,101 @@ void gPosition::setPosition(int inLatDeg, double inLatMin, quad inLatQuad, int i
 }
 
 
+// We are at point A, we want to sail to point B. Where should we head? Well, the internet
+// furnished this formula :
+//
+// ----------------------------------------------------------------- 
+// Bearing from point A to B, can be calculated as,
+// 
+// β = atan2(X,Y),
+// 
+// where, X and Y are two quantities and can be calculated as:
+// 
+// X = cos θb * sin ∆L
+// 
+// Y = cos θa * sin θb – sin θa * cos θb * cos ∆L
+// ----------------------------------------------------------------- 
+//
+// Ok.. Let's give it a go!
+//
 double gPosition::trueBearingTo(gPosition* inDest) { 
 
-	Serial.println("I have no idea how to do that.");
-	return 0;
+	double	latA;
+	double	lonA;
+	double	latB;
+	double	lonB;
+	double	bearing;
+	double	X;				// Some quantity?
+	double	Y;				// Some other quantity?
+	double	deltaLon;
+	
+	latA = getLatAsDbl();																// Grab our location
+	latA = deg2rad(latA);																// Convert to radians, for doing trig.
+	lonA = getLonAsDbl();																// Other value as wel..
+	lonA = deg2rad(lonA);																// Trig..
+	
+	latB = inDest->getLatAsDbl();														// Do the same for the destination
+	latB = deg2rad(latB);																// Convert.
+	lonB = inDest->getLonAsDbl();														// Other value.
+	lonB = deg2rad(lonB);																// Convert.
+	
+	
+	deltaLon = lonB - lonA;																// Formula wants delta longitude.
+	X = cos(latB) * sin(deltaLon);													// Calculate the X thing.
+	Y = cos(latA) * sin(latB) - sin(latA) * cos(latB) * cos(deltaLon);	// Calculate the Y thing.
+	bearing = atan2(X,Y);																// Do the atan2() thing.
+	bearing = rad2deg(bearing);														// Convert it back to degrees. (For sailors)
+	return bearing;																		// Hand it off.
 }
 
 
+// How far away is point B?
+// On using great circle route and an average value or earth's radius.. We'll use the 
+// Haversine formula :
+//
+// ----------------------------------------------------------------- 
+// https://www.movable-type.co.uk/scripts/latlong.html
+//
+//Haversine formula:	
+//a = sin²(Δφ/2) + cos φ1 ⋅ cos φ2 ⋅ sin²(Δλ/2)
+//c = 2 ⋅ atan2( √a, √(1−a) )
+//d = R ⋅ c
+//where:	φ is latitude, λ is longitude, R is earth’s radius (mean radius = 6,371km);
+//note that angles need to be in radians to pass to trig functions!
+// -----------------------------------------------------------------
+//
+// Well, here it goes..
 double gPosition::distanceTo(gPosition* inDest) {
 
-	Serial.println("You're joking right?");
-	return 0;
+	double	latA;
+	double	lonA;
+	double	latB;
+	double	lonB;
+	double	deltaLat;
+	double	deltaLon;
+	double	step1;
+	double	angle;
+	double	dist;
+	
+	latA = getLatAsDbl();																										// Grab our latitude as a numerical value.
+	latA = deg2rad(latA);																										// Convert to radians, for doing trig.
+	lonA = getLonAsDbl();																										// Grab our longitude as a numerical value.
+	lonA = deg2rad(lonA);																										// Trig..
+	
+	latB = inDest->getLatAsDbl();																								// Do the same for the destination
+	latB = deg2rad(latB);																										// Convert.
+	lonB = inDest->getLonAsDbl();																								// Grab..
+	lonB = deg2rad(lonB);																										// Convert.
+	
+	deltaLat = (inDest->getLatAsDbl() - getLatAsDbl());																// Deltas are all calculated dest - start.
+	deltaLat = deg2rad(deltaLat);
+	deltaLon = (inDest->getLonAsDbl() - getLonAsDbl());																// Calculate..
+	deltaLon = deg2rad(deltaLon);
+	
+	step1 = sin(deltaLat/2) * sin(deltaLat/2) + cos(latA)*cos(latB)*sin(deltaLon/2)*sin(deltaLon/2);	// Calculate first step.
+	angle = 2 * atan2(sqrt(step1), sqrt(1-step1));
+	dist = angle * RADIUS_EARTH_KNOTS; //6371.2; for km
+	return dist;
 }
 
 

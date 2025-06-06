@@ -45,8 +45,9 @@ enum modeII {
 extern bool	checkLatDeg(int degrees);
 extern bool	checkLonDeg(int degrees);
 extern bool	checkMin(double minutes);
-
-
+extern double rad2deg(double angleRad);
+extern double deg2rad(double angleDeg);
+extern double hav(double theta);
 
 // **********************************************
 // ****************  gPosition  *****************
@@ -72,6 +73,7 @@ class gPosition {
 				void		setPosValues(const char* latStr,const char* lonStr);
 				void		setQuads(const char*  inLatQuad,const char*  inLonQuad);
 				
+				void		setPos(double inLat, double inLon);
 				void		setLatValue(int inLatDeg, double inLatMin);
 				void		setLatQuad(quad inLatQuad);
 				void		setLonValue(int inLonDeg, double inLonMin);
