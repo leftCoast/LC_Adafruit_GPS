@@ -1,23 +1,105 @@
-#ifndef GPSHandlers_h
-#define GPSHandlers_h
-
-#include <GPxxx.h>
+#ifndef GPSReader_h
+#define GPSReader_h
 
 
-class GPSInHandler;
+#include <numStream.h>
+#include <idlers.h>
+#include <debug.h>
+#include <globalPos.h>
+
+#define SHOW_DATA
+
+class GPSMsgHandler;
+class GPVTG;
+class GPGGA;
+class GPGSA;
+class GPGSV;
+class GPRMC;
+
+extern	GPVTG		trackMadeGood;  
+extern	GPGGA		fixData; 
+extern	GPGSA		activeSatellites; 
+extern	GPGSV		SatellitesInView; 
+extern	GPRMC		minTransData;
+
+
+// **********************************************
+// ****************   GPSReader  ****************
+// **********************************************
+
+class GPSReader :	public numStreamIn,
+                  public idler {
+
+   public:
+            GPSReader(Stream* inPort=DEF_IN_PORT,int tokenBuffBytes=DEF_TOKEN_BYTES);
+   virtual  ~GPSReader(void);
+
+				void	begin(void);
+            void  addHandler(GPSMsgHandler* inHandler);
+            void  checkHandlers(char* inStr);
+   virtual  void  idle(void);
+   virtual  void  readVar(int index,bool lastField);
+
+            linkList			handlers;
+            GPSMsgHandler*	currentHandler;
+};
+
+
+enum fixQuality {
+	fixInvalid,
+	fixByGPS,
+	fixByDGPS
+};
+
+
+enum mode {
+	manual,
+	automatic
+};
+
+
+enum modeII {
+	noFix,
+	twoD,
+	threeD
+};
+
+
+// **********************************************
+// *************** GPSMsgHandler ****************
+// **********************************************
+
+
+class GPSMsgHandler :	public linkListObj,
+								public numStreamIn {
+	
+   public:
+            GPSMsgHandler(const char* inIDStr);
+   virtual  ~GPSMsgHandler(void);
+
+   virtual  bool  handleStr(char* inID,GPSReader* inGPSReadeream);
+            void  stripChecksum(char* inStr);
+            char*	quadToText(quad inQuad);
+            char*	qualityToText(fixQuality inQual);
+   virtual  void  showData(void);
+   
+            char*       IDStr;
+            bool        readErr;
+};
+
 
 /* A handy template.
 
 // **********************************************
-// ****************     GP???    ****************
+// ****************     GPXXX    ****************
 // **********************************************
 
 
-class GP??? :  public GPSInHandler {
+class GPXXX :  public GPSMsgHandler {
 
    public:
-            GP???(void);
-   virtual  ~GP???(void);
+            GPXXX(void);
+   virtual  ~GPXXX(void);
 
 #ifdef SHOW_DATA
    virtual  void  showData(void);
@@ -37,7 +119,7 @@ class GP??? :  public GPSInHandler {
 
 
 // Track Made Good and Ground Speed.
-class GPVTG :  public GPSInHandler {
+class GPVTG :  public GPSMsgHandler {
 
    public:
             GPVTG(void);
@@ -70,7 +152,7 @@ class GPVTG :  public GPSInHandler {
 
 	
 // Global Positioning System Fix Data
-class GPGGA :  public GPSInHandler {
+class GPGGA :  public GPSMsgHandler {
 
    public:
             GPGGA(void);
@@ -83,7 +165,7 @@ class GPGGA :  public GPSInHandler {
             int 			hours;
             int 			min;
             float 		sec;
-            gPosition	latLon;
+            globalPos	latLon;
             fixQuality	qualVal;
             int			numSatellites;
             float			HDOP;					// Relative accuracy of horizontal position.
@@ -98,7 +180,7 @@ class GPGGA :  public GPSInHandler {
 				int 			h;
             int 			m;
             float 		s;
-            gPosition	pos;
+            globalPos	pos;
             fixQuality	qual;
             int			numSat;
             float			Acc;
@@ -116,7 +198,7 @@ class GPGGA :  public GPSInHandler {
 
 
 //GPS DOP and active satellites
-class GPGSA :  public GPSInHandler {
+class GPGSA :  public GPSMsgHandler {
 
    public:
             GPGSA(void);
@@ -166,13 +248,13 @@ class satData :	public linkListObj {
 
 
 //GPS Satellites in view
-class GPGSV :  public GPSInHandler {
+class GPGSV :  public GPSMsgHandler {
 
    public:
             GPGSV(void);
    virtual  ~GPGSV(void);
 	
-	virtual  bool  handleStr(char* inID,GPSInStr* inGPSInStream);
+	virtual  bool  handleStr(char* inID,GPSReader* inGPSInStream);
 
 #ifdef SHOW_DATA
    virtual  void  showData(void);
@@ -202,7 +284,7 @@ class GPGSV :  public GPSInHandler {
 
 
 // Recommended minimum specific GPS/Transit data
-class GPRMC :  public GPSInHandler {
+class GPRMC :  public GPSMsgHandler {
 
    public:
             GPRMC(void);
@@ -216,7 +298,7 @@ class GPRMC :  public GPSInHandler {
             int			min;
             float			sec;
             bool			valid;
-            gPosition	latLon;
+            globalPos	latLon;
             float			groundSpeed;
             float			trueCourse;
             int			year;
@@ -233,7 +315,7 @@ class GPRMC :  public GPSInHandler {
 				int			mn;
 				float			s;
 				bool			val;
-				gPosition	pos;
+				globalPos	pos;
 				float			knots;
 				float			tCourse;
 				int			y;
@@ -243,8 +325,6 @@ class GPRMC :  public GPSInHandler {
 				quad			EW;      
 };
 
-
-            
 
 
 

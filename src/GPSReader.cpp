@@ -1,9 +1,149 @@
-#include <GPSHandlers.h>
-
+#include <GPSReader.h>
 
 // **********************************************
-// ****************     GP???    ****************
+// ****************   GPSReader   ****************
 // **********************************************
+
+
+GPSReader::GPSReader(Stream* inPort,int tokenBuffBytes)
+   : numStreamIn(inPort,tokenBuffBytes),
+   idler() { currentHandler = NULL; }
+
+  
+GPSReader::~GPSReader(void) {  }
+
+
+// Hooks up our default handlers.
+void GPSReader::begin(void) {
+
+	addHandler(&trackMadeGood);
+   addHandler(&fixData);
+   addHandler(&activeSatellites);
+   addHandler(&SatellitesInView); 
+   addHandler(&minTransData);
+}
+
+
+// Hook up a data type handler. Also calls hookup for grabbing idle run time.
+void GPSReader::addHandler(GPSMsgHandler* inHandler) {
+
+   if (inHandler) {
+      hookup();
+      handlers.addToEnd(inHandler);
+   }
+}
+
+
+void GPSReader::checkHandlers(char* inStr) {
+
+   GPSMsgHandler* trace;
+   bool        success;
+   
+   trace = (GPSMsgHandler*)handlers.getFirst();
+   success = false;
+   while(trace && !success) {
+      success = trace->handleStr(inStr,this);
+      if (success) {
+         currentHandler = trace;
+         return;
+      }
+      trace = (GPSMsgHandler*)trace->getNext();
+   }
+   if (!success) {
+   	Serial.print("No handler for : ");
+   	Serial.println(inStr);
+   }
+}
+
+
+void GPSReader::idle(void) {
+
+   if (currentHandler) {
+      currentHandler->readStream();
+      if (!currentHandler->mSynk) {
+         copyStream(currentHandler);
+         currentHandler = NULL;
+      }
+   } else {
+      readStream(); 
+   }
+}
+
+void GPSReader::readVar(int index,bool lastField) {
+
+   if (index==0) {
+      checkHandlers(mTokenBuff);
+   }
+}
+
+
+		
+// **********************************************
+// *************** GPSMsgHandler ****************
+// **********************************************
+
+char	strBuff[40];
+
+
+GPSMsgHandler::GPSMsgHandler(const char* inIDStr)
+   : linkListObj(),
+   numStreamIn() {
+      
+   IDStr = NULL;
+   heapStr(&IDStr,inIDStr);
+}
+
+
+GPSMsgHandler::~GPSMsgHandler(void) { freeStr(&IDStr); }
+   
+
+bool GPSMsgHandler::handleStr(char* inID,GPSReader* inGPSReadeream) {
+
+   if (!strcmp(inID,IDStr)) {
+      copyStream(inGPSReadeream);
+      readErr = false;
+      return true;
+   }
+   return false;
+}
+
+
+void GPSMsgHandler::stripChecksum(char* inStr) {
+
+   int index;
+
+   if (inStr) {
+      index = 0;
+      while(inStr[index]!='\0'&& inStr[index]!='*') index++;
+      inStr[index] = '\0';
+   } 
+}
+
+
+char*	GPSMsgHandler::quadToText(quad inQuad) {
+
+	switch(inQuad) {
+		case north	: strcpy(strBuff,"North"); break;
+		case south	: strcpy(strBuff,"South"); break;
+		case east	: strcpy(strBuff,"East"); break;
+		case west	: strcpy(strBuff,"West"); break;
+	}
+	return strBuff;
+}
+
+
+char*	GPSMsgHandler::qualityToText(fixQuality inQual) {
+
+	switch(inQual) {
+		case fixInvalid	: strcpy(strBuff,"Fix invalid"); break;
+		case fixByGPS	: strcpy(strBuff,"Fix by GPS"); break;
+		case fixByDGPS	: strcpy(strBuff,"Fix by differential GPS"); break;
+	}
+	return strBuff;
+}
+
+
+void  GPSMsgHandler::showData(void) {  }
 
 
 
@@ -13,7 +153,7 @@
 
    
 GPVTG::GPVTG(void)
-   : GPSInHandler("GPVTG") {
+   : GPSMsgHandler("GPVTG") {
       
     trueCourse          = 0;
     magCourse           = 0;
@@ -69,7 +209,7 @@ void GPVTG::showData(void) {
 
 
 GPGGA::GPGGA(void)
-	: GPSInHandler("GPGGA") {
+	: GPSMsgHandler("GPGGA") {
 	
 	hours				= 0;
 	min				= 0;
@@ -182,7 +322,7 @@ void GPGGA::showData(void) {
 
 
 GPGSA::GPGSA(void)
-	: GPSInHandler("GPGSA") {
+	: GPSMsgHandler("GPGSA") {
 	
 	operationMode = manual;
 	fixType			= noFix;
@@ -313,7 +453,7 @@ satData::~satData(void) {  }
 
 //GPS Satellites in view
 GPGSV::GPGSV(void)
-	: GPSInHandler("GPGSV") {
+	: GPSMsgHandler("GPGSV") {
 	
 	msgNum	= 0;
 	loopNum	= 0;
@@ -324,9 +464,9 @@ GPGSV::GPGSV(void)
 GPGSV::~GPGSV(void) {  }
 	
 	
-bool GPGSV::handleStr(char* inID,GPSInStr* inGPSInStream) {
+bool GPGSV::handleStr(char* inID,GPSReader* inGPSReadeream) {
 
-	if (GPSInHandler::handleStr(inID,inGPSInStream)) {
+	if (GPSMsgHandler::handleStr(inID,inGPSReadeream)) {
 		msgNum++;
 		loopNum = 0;
 		return true;
@@ -446,7 +586,7 @@ void GPGSV::showData(void) {
 
 //Recommended minimum specific GPS/Transit data
 GPRMC::GPRMC(void)
-	: GPSInHandler("GPRMC") { 
+	: GPSMsgHandler("GPRMC") { 
 
 	hours			= 0;
 	min			= 0;
@@ -568,9 +708,8 @@ void GPRMC::showData(void) {
 #endif
 
 
-// **********************************************
-// ****************     GP???    ****************
-// **********************************************
-
-
-
+GPVTG		trackMadeGood;  
+GPGGA		fixData; 
+GPGSA		activeSatellites; 
+GPGSV		SatellitesInView; 
+GPRMC		minTransData;
