@@ -21,6 +21,7 @@ void GPSReader::begin(void) {
    addHandler(&activeSatellites);
    addHandler(&SatellitesInView); 
    addHandler(&minTransData);
+   hookup();
 }
 
 
@@ -28,7 +29,6 @@ void GPSReader::begin(void) {
 void GPSReader::addHandler(GPSMsgHandler* inHandler) {
 
    if (inHandler) {
-      hookup();
       handlers.addToEnd(inHandler);
    }
 }
@@ -39,6 +39,7 @@ void GPSReader::checkHandlers(char* inStr) {
    GPSMsgHandler* trace;
    bool        success;
    
+   Serial.println("checkHandlers");
    trace = (GPSMsgHandler*)handlers.getFirst();
    success = false;
    while(trace && !success) {
@@ -65,6 +66,7 @@ void GPSReader::idle(void) {
          currentHandler = NULL;
       }
    } else {
+   	Serial.println("Just reading stream, no current.");
       readStream(); 
    }
 }
