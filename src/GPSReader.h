@@ -7,7 +7,7 @@
 #include <debug.h>
 #include <globalPos.h>
 
-#define SHOW_DATA
+//#define SHOW_DATA
 
 class GPSMsgHandler;
 class GPVTG;

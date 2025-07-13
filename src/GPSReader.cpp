@@ -38,8 +38,7 @@ void GPSReader::checkHandlers(char* inStr) {
 
    GPSMsgHandler* trace;
    bool        success;
-   
-   Serial.println("checkHandlers");
+
    trace = (GPSMsgHandler*)handlers.getFirst();
    success = false;
    while(trace && !success) {
@@ -66,7 +65,6 @@ void GPSReader::idle(void) {
          currentHandler = NULL;
       }
    } else {
-   	Serial.println("Just reading stream, no current.");
       readStream(); 
    }
 }
@@ -165,6 +163,7 @@ GPVTG::GPVTG(void)
 
    
 GPVTG::~GPVTG(void) {  }
+
 
 void GPVTG::readVar(int index,bool lastField) {
    
