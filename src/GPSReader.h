@@ -3,47 +3,10 @@
 
 
 #include <numStream.h>
-#include <idlers.h>
-#include <debug.h>
 #include <globalPos.h>
 
 //#define SHOW_DATA
-
-class GPSMsgHandler;
-class GPVTG;
-class GPGGA;
-class GPGSA;
-class GPGSV;
-class GPRMC;
-
-extern	GPVTG		trackMadeGood;  
-extern	GPGGA		fixData; 
-extern	GPGSA		activeSatellites; 
-extern	GPGSV		SatellitesInView; 
-extern	GPRMC		minTransData;
-
-
-// **********************************************
-// ****************   GPSReader  ****************
-// **********************************************
-
-class GPSReader :	public numStreamIn,
-                  public idler {
-
-   public:
-            GPSReader(Stream* inPort=DEF_IN_PORT,int tokenBuffBytes=DEF_TOKEN_BYTES);
-   virtual  ~GPSReader(void);
-
-				void	begin(void);
-            void  addHandler(GPSMsgHandler* inHandler);
-            void  checkHandlers(char* inStr);
-   virtual  void  idle(void);
-   virtual  void  readVar(int index,bool lastField);
-
-            linkList			handlers;
-            GPSMsgHandler*	currentHandler;
-};
-
+#define NUM_HANDLERS	5	// GPVTG, GPGGA, GPGSA, GPGSV, GPRMC
 
 enum fixQuality {
 	fixInvalid,
@@ -57,6 +20,14 @@ enum mode {
 	automatic
 };
 
+// From novatel documents.
+enum posModes {
+	Autonomous,
+	Differential,
+	Estimated,		// Dead reckoning.
+	Manual,
+	notValid
+};
 
 enum modeII {
 	noFix,
@@ -65,52 +36,33 @@ enum modeII {
 };
 
 
+class GPSReader;
+
+
 // **********************************************
 // *************** GPSMsgHandler ****************
 // **********************************************
 
-
-class GPSMsgHandler :	public linkListObj,
-								public numStreamIn {
+// Base functionality of the incoming GPS handlers.
+class GPSMsgHandler {
 	
    public:
-            GPSMsgHandler(const char* inIDStr);
+            GPSMsgHandler(const char* inType,GPSReader* inReader);
    virtual  ~GPSMsgHandler(void);
 
-   virtual  bool  handleStr(char* inID,GPSReader* inGPSReadeream);
+   virtual  void	clearValues(void);
+   virtual  bool	canHandle(const char* inType);
+   virtual	bool	decodeParam(char* inParam,int paramIndex,bool lastParam);
             void  stripChecksum(char* inStr);
             char*	quadToText(quad inQuad);
             char*	qualityToText(fixQuality inQual);
    virtual  void  showData(void);
    
-            char*       IDStr;
-            bool        readErr;
+            char*			typeStr;
+            GPSReader*	reader;
+            bool			readErr;
 };
 
-
-/* A handy template.
-
-// **********************************************
-// ****************     GPXXX    ****************
-// **********************************************
-
-
-class GPXXX :  public GPSMsgHandler {
-
-   public:
-            GPXXX(void);
-   virtual  ~GPXXX(void);
-
-#ifdef SHOW_DATA
-   virtual  void  showData(void);
-#endif
-
-	protected:
-	virtual  void readVar(int index,bool lastField);
-             
-};
-
-*/
 
 
 // **********************************************
@@ -122,9 +74,12 @@ class GPXXX :  public GPSMsgHandler {
 class GPVTG :  public GPSMsgHandler {
 
    public:
-            GPVTG(void);
+            GPVTG(GPSReader* inReader);
    virtual  ~GPVTG(void);
-
+   
+   virtual  void	clearValues(void);
+	virtual	bool	decodeParam(char* inParam,int paramIndex,bool lastParam);
+	
 #ifdef SHOW_DATA
    virtual  void  showData(void);
 #endif
@@ -132,17 +87,8 @@ class GPVTG :  public GPSMsgHandler {
             float trueCourse;
             float magCourse;
             float groudSpeedKnots;
-            float groundSpeedKilosPH;
-            
-   protected:
-   
-	virtual	void	readVar(int index,bool lastField);
-    
-				float tC;
-				float mC;         
-				float gSKn;
-				float gSKilo;
-};
+            float groundSpeedKilos;
+};			
 
 
 
@@ -155,9 +101,12 @@ class GPVTG :  public GPSMsgHandler {
 class GPGGA :  public GPSMsgHandler {
 
    public:
-            GPGGA(void);
+            GPGGA(GPSReader* inReader);
    virtual  ~GPGGA(void);
-
+	
+	virtual  void	clearValues(void);
+	virtual	bool	decodeParam(char* inParam,int paramIndex,bool lastParam);
+	
 #ifdef SHOW_DATA
    virtual  void  showData(void);
 #endif
@@ -172,22 +121,7 @@ class GPGGA :  public GPSMsgHandler {
             float			altitude;
             float			GeoidalHeight;
             float			ageOfDGPSData;
-            int			DGPSStationID;
-            
-	protected:
-	virtual  void readVar(int index,bool lastField);
-	
-				int 			h;
-            int 			m;
-            float 		s;
-            globalPos	pos;
-            fixQuality	qual;
-            int			numSat;
-            float			Acc;
-            float			alt;
-            float			GHeight;
-            float			ageOfData;
-            int			stationID;           
+            int			DGPSStationID; 
 };
 
 
@@ -201,9 +135,12 @@ class GPGGA :  public GPSMsgHandler {
 class GPGSA :  public GPSMsgHandler {
 
    public:
-            GPGSA(void);
+            GPGSA(GPSReader* inReader);
    virtual  ~GPGSA(void);
 
+	virtual  void	clearValues(void);
+	virtual	bool	decodeParam(char* inParam,int paramIndex,bool lastParam);
+	
 #ifdef SHOW_DATA
    virtual  void  showData(void);
 #endif
@@ -215,16 +152,6 @@ class GPGSA :  public GPSMsgHandler {
 				float		PDOP;
 				float		HDOP;
 				float		VDOP;
-				
-	protected:
-	virtual  void readVar(int index,bool lastField);
-	
-				mode		M1;
-				modeII	M2;
-				int		ID[11];
-				float		P;
-				float		H;
-				float		V;
 };
 
 
@@ -238,42 +165,48 @@ class satData :	public linkListObj {
 
 	public:
 				satData(void);
+				satData(satData* copyData);
 	virtual	~satData(void);
 
-	int	PRNNum;
-	float	elevation;
-	float	azmuth;
-	int	SigToNoise;
+				int	PRNNum;
+				float	elevation;
+				float	azimuth;
+				int	SigToNoise;
 };
 
 
-//GPS Satellites in view
+enum setupReasons {
+
+	newMsgSet,
+	newMsg,
+	newDataSet
+};
+
+
+//Data from the GPS Satellites in view.
 class GPGSV :  public GPSMsgHandler {
 
    public:
-            GPGSV(void);
+            GPGSV(GPSReader* inReader);
    virtual  ~GPGSV(void);
 	
-	virtual  bool  handleStr(char* inID,GPSReader* inGPSInStream);
-
+				void	setup(setupReasons reason);
+				int	adjustedIndex(int paramIndex);
+				bool	addNode(void);
+				void	setComplete(void);
+	virtual	bool	decodeParam(char* inParam,int paramIndex,bool lastParam);
+	
 #ifdef SHOW_DATA
    virtual  void  showData(void);
 #endif
+				int		numMsgs;				// Multiple messages in a set. How many to expect.
+				int		msgNum;				// What message are we waiting for or working on?
+				int		repeatNum;			// Multiple data sets in a message. What one we working on? In that message.
+				int		numSatllites;		// Number of data sets to expect as a total of all messages.
+				int		satNum;				// Which of the total data sets are we working on?
+				linkList	workingSatList;	// Local list of satellite data sets to be handed lover to the reader.
+				satData	tempData;			// Where we store the data set we are currently working on.
 				
-				linkList	satDataList;
-					
-	protected:
-				void	adjustList(int numItems);
-				int	recalcIndex(int index);
-	virtual  void	readVar(int index,bool lastField);
-    			
-            int		numMessages;
-				int		msgNum;
-				int		numSatellites;
-				int		satNum;
-				int		loopNum;
-				satData	tempData;
-				linkList	workingSatList;
 };
 
 
@@ -287,9 +220,12 @@ class GPGSV :  public GPSMsgHandler {
 class GPRMC :  public GPSMsgHandler {
 
    public:
-            GPRMC(void);
+            GPRMC(GPSReader* inReader);
    virtual  ~GPRMC(void);
    
+   virtual  void	clearValues(void);
+	virtual	bool	decodeParam(char* inParam,int paramIndex,bool lastParam);
+	
 #ifdef SHOW_DATA
    virtual  void  showData(void);
 #endif
@@ -299,33 +235,100 @@ class GPRMC :  public GPSMsgHandler {
             float			sec;
             bool			valid;
             globalPos	latLon;
-            float			groundSpeed;
+            float			groudSpeedKnots;
             float			trueCourse;
             int			year;
             int			month;
             int			day;
             float			magVar;
-            quad			vEastWest;
-            
-            
-	protected:
-	virtual  void readVar(int index,bool lastField);
-       		
-       		int			h;
-				int			mn;
-				float			s;
-				bool			val;
-				globalPos	pos;
-				float			knots;
-				float			tCourse;
-				int			y;
-				int			mo;
-				int			d;
-				float			mVar;
-				quad			EW;      
+            quad			vEastWest; 
+            posModes		posMode;    
 };
 
 
+// **********************************************
+// ****************   GPSReader  ****************
+// **********************************************
 
 
-#endif
+class GPSReader :	public numStreamIn {
+
+	public:
+				GPSReader(Stream* inStream=DEF_IN_PORT,int tokenBuffBytes=DEF_TOKEN_BYTES);
+	virtual	~GPSReader(void);
+	
+				void	begin(void);
+	virtual	void 	reset(void);
+	virtual	bool	canHandle(const char* param);
+	virtual  bool	addValue(char* param,int paramIndex,bool isLast);
+	
+				GPSMsgHandler*	handlers[NUM_HANDLERS];
+				int				theHandler;
+				
+				int				year;
+            int				month;
+            int				day;
+            
+            int 				hours;
+            int 				min;
+            float 			sec;
+            
+            globalPos		latLon;
+            float				altitude;
+            fixQuality		qualVal;
+            bool				valid;
+            posModes			posMode; 
+            
+            float				trueCourse;
+            float				magCourse;
+            float				groudSpeedKnots;
+            float				groundSpeedKilos;
+            
+            uint16_t			magVar;
+            char				vEastWest;
+            float				GeoidalHeight;
+            float				ageOfDGPSData;
+            int				DGPSStationID;
+            mode				operationMode;
+				modeII			fixType;
+				int				numSatellites;
+				int				SVID[11];
+				float				PDOP;
+				float				HDOP;
+				float				VDOP;
+				
+				linkList			satInViewList;
+};
+
+
+// Pointer to our global GPS input source.
+extern GPSReader* ourGPS;
+
+/*
+
+Should be called out in your global code space, above setup(), like..
+
+ourGPS = new GPSReader;	
+GPSReader->begin();
+
+For default using DEF_INSTREAM and DEF_TOKEN_BYTES as serial buffer extender. (see top of
+numStream.h file.)
+
+
+Or you can have a different port with default buffer..
+
+ourGPS = new GPSReader(Serial2);		
+GPSReader->begin();
+
+Or set both..
+
+ourGPS = new GPSReader(Serial1,200);
+GPSReader->begin();
+
+*/
+
+
+
+				            
+#endif            
+
