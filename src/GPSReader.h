@@ -5,7 +5,6 @@
 #include <numStream.h>
 #include <globalPos.h>
 
-//#define SHOW_DATA
 #define NUM_HANDLERS	5	// GPVTG, GPGGA, GPGSA, GPGSV, GPRMC
 
 enum fixQuality {
@@ -84,10 +83,11 @@ class GPVTG :  public GPSMsgHandler {
    virtual  void  showData(void);
 #endif
             
-            float trueCourse;
-            float magCourse;
-            float groudSpeedKnots;
-            float groundSpeedKilos;
+            float 	trueCourse;
+            float 	magCourse;
+            float 	groudSpeedKnots;
+            float 	groundSpeedKilos;
+            posModes	posMode;
 };			
 
 

@@ -99,34 +99,87 @@ void GPVTG::clearValues(void) {
 	trueCourse				= 0;
 	magCourse				= 0;
 	groudSpeedKnots		= 0;
-	groundSpeedKilos	= 0;
+	groundSpeedKilos		= 0;
 }
 
 
 bool GPVTG::decodeParam(char* inParam,int paramIndex,bool lastParam) {
 
-	if (!readErr) {
-      switch(paramIndex) {
-         case 1   : trueCourse = atof(inParam); 					break;
-         case 2   : if (strcmp(inParam,"T")) readErr = true;	break;
-         case 3   : magCourse = atof(inParam);						break;
-         case 4   : if (strcmp(inParam,"M")) readErr = true;	break;
-         case 5   : groudSpeedKnots = atof(inParam);				break;
-         case 6   : if (strcmp(inParam,"N")) readErr = true;	break;
-         case 7   : groundSpeedKilos = atof(inParam);				break;
-         case 8   :
-            stripChecksum(inParam);
-            if (!strcmp(inParam,"K") && lastParam) {
-               reader->trueCourse	=	trueCourse;
-               reader->trueCourse	=	magCourse;
-               reader->trueCourse	=	groudSpeedKnots;
-               reader->trueCourse	=	groundSpeedKilos; 
-            }
-            showData();
-         break;
-      }
+	switch(paramIndex) {
+		case 1   : 
+			trueCourse = atof(inParam);
+			return true;
+		break;
+		case 2   : 
+			if (!strcmp(inParam,"T")) {
+				return true;
+			}
+			readErr = true;
+			return false;
+		break;
+		case 3   :
+			magCourse = atof(inParam);
+			return true;
+		break;
+		case 4   : 
+			if (!strcmp(inParam,"M")) {
+				return true;
+			}
+			readErr = true;
+			return false;
+		break;
+		case 5   :
+			groudSpeedKnots = atof(inParam);
+			return true;
+		break;
+		case 6   : 
+			if (!strcmp(inParam,"N")) {
+				return true;
+			}
+			readErr = true;
+			return false;
+		break;
+		case 7   : 
+			groundSpeedKilos = atof(inParam);
+			return true;
+		break;
+		case 8   :
+			if (!strcmp(inParam,"K")) {
+				return true;
+			}
+			readErr = true;
+			return false;
+		break;
+		case 9	:
+			if (lastParam) {
+				stripChecksum(inParam);
+				if (!strcmp(inParam,"A")) {
+					posMode = Autonomous;
+				} else if (!strcmp(inParam,"D")) {
+					posMode = Differential;
+				} else if (!strcmp(inParam,"E")) {
+					posMode = Estimated;
+				} else if (!strcmp(inParam,"M")) {
+					posMode = Manual;
+				} else if (!strcmp(inParam,"N")) {
+					posMode = notValid;
+				} else {
+					readErr = true;
+					return false;
+				}	
+				showData();
+				reader->trueCourse	= trueCourse;
+				reader->trueCourse	= magCourse;
+				reader->trueCourse	= groudSpeedKnots;
+				reader->trueCourse	= groundSpeedKilos;
+				reader->posMode		= posMode;
+				return true;
+			} else {
+				return false;
+			}
+		break;
    }																							
-	return !readErr;																		// Let 'em know how we're doin'.	
+	return false;																		// Let 'em know how we're doin'.	
 }
 
 	
@@ -134,10 +187,18 @@ bool GPVTG::decodeParam(char* inParam,int paramIndex,bool lastParam) {
 void GPVTG::showData(void) {
 
 	Serial.println("-------------------------------");
-   Serial.print("True Course :\t");Serial.print(trueCourse);Serial.println("\tDegrees");
-   Serial.print("Mag Course  :\t");Serial.print(magCourse);Serial.println("\tDegrees");
-   Serial.print("Groud Speed :\t");Serial.print(groudSpeedKnots);Serial.println("\tKnots");
-   Serial.print("Groud Speed :\t");Serial.print(groundSpeedKilos);Serial.println("\tKilometers per hour");
+   Serial.print("True Course   :\t");Serial.print(trueCourse);Serial.println("\tDegrees");
+   Serial.print("Mag Course    :\t");Serial.print(magCourse);Serial.println("\tDegrees");
+   Serial.print("Groud Speed   :\t");Serial.print(groudSpeedKnots);Serial.println("\tKnots");
+   Serial.print("Groud Speed   :\t");Serial.print(groundSpeedKilos);Serial.println("\tKilometers per hour");
+   Serial.print("Position mode :\t");
+   switch(posMode) {
+   	case Autonomous	: Serial.println("Autonomous.");		break;
+   	case Differential : Serial.println("Differential.");	break;
+   	case Estimated		: Serial.println("Estimated.");		break;
+   	case Manual			: Serial.println("Manual.");			break;
+   	case notValid		: Serial.println("notValid.");		break;
+   }
    Serial.println("-------------------------------");
 }
 #endif
