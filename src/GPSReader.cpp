@@ -921,7 +921,7 @@ bool GPSReader::canHandle(const char* param) {
 		}
 	}
 	Serial.print("**** Oh ohh! No handler for [");
-	Serial.print(param);
+	Serial.print(msgBuf);
 	Serial.println("] ****");
 	return false;
 }
