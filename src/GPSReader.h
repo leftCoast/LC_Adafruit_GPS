@@ -306,12 +306,12 @@ extern GPSReader* ourGPS;
 
 /*
 
-Should be called out in your global code space, above setup(), like..
+In your setup() function put..
 
-ourGPS = new GPSReader;	
-GPSReader->begin();
+ourGPS = new GPSReader;
+ourGPS->begin();
 
-For default using DEF_INSTREAM and DEF_TOKEN_BYTES as serial buffer extender. (see top of
+This will give you the default using DEF_INSTREAM and DEF_TOKEN_BYTES. (see top of
 numStream.h file.)
 
 
@@ -322,7 +322,7 @@ GPSReader->begin();
 
 Or set both..
 
-ourGPS = new GPSReader(Serial1,200);
+ourGPS = new GPSReader(Serial1,64);
 GPSReader->begin();
 
 */
