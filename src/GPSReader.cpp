@@ -650,10 +650,10 @@ void GPGSV::showData(void) {
 	for (int i=0;i<numItems;i++) {
 		dataNode = (satData*)workingSatList.getByIndex(i);
 		if (dataNode) {
-			Serial.print("Satellite :\t");Serial.println(dataNode->PRNNum);
-			Serial.print("Elevation :\t");Serial.println(dataNode->elevation);
-			Serial.print("Azmuth :\t");Serial.println(dataNode->azimuth);
-			Serial.print("Sig / Noise :\t");Serial.println(dataNode->SigToNoise);
+			Serial.print("Satellite         :\t");Serial.println(dataNode->PRNNum);
+			Serial.print("Elevation         :\t");Serial.println(dataNode->elevation);
+			Serial.print("Azimuth           :\t");Serial.println(dataNode->azimuth);
+			Serial.print("Sig / Noise       :\t");Serial.println(dataNode->SigToNoise);
 			Serial.println(".....");
 		}
 	}
