@@ -104,7 +104,7 @@ void GPVTG::clearValues(void) {
 
 
 bool GPVTG::decodeParam(char* inParam,int paramIndex,bool lastParam) {
-
+Serial.println(paramIndex);
 	switch(paramIndex) {
 		case 1   : 
 			trueCourse = atof(inParam);
