@@ -1,6 +1,6 @@
 #include <GPSReader.h>
 #include <strTools.h>
-#include <debug.h>
+//#include <debug.h>
 
 // **********************************************
 // *************** GPSMsgHandler ****************
@@ -499,7 +499,7 @@ void GPGSV::setup(setupReasons reason) {
 			repeatNum				= 0;		// Multiple data sets in a message. What one we working on? In that message.
 			numSatllites			= 0;		// Number of data sets to expect as a total of all messages.
 			satNum					= 1;		// Which of the total data sets are we working on?
-			workingSatList.dumpList();		// Local list of satellite data sets to be handed lover to the reader.
+			workingSatList.dumpList();		// Local list of satellite data sets to be handed over to the reader.
 			tempData.PRNNum		= 0;		// Where we store the data set we are currently working on.
 			tempData.elevation	= 0;
 			tempData.azimuth		= 0;
