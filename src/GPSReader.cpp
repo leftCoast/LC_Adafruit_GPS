@@ -252,13 +252,10 @@ bool GPGGA::decodeParam(char* inParam,int paramIndex,bool lastParam) {
 				ptr = &(inParam[4]);			// I think
 				sec = atof(ptr);					// This one won't work.
 			break;
-			case 2	: latLon.setLatValue(inParam); break;
-			case 3	: latLon.setLatQuad(inParam); break;
-			case 4	: latLon.setLonValue(inParam); break;
-			case 5	: 
-				latLon.setLonQuad(inParam);		// Seeing as this is the last one..
-				latLon.setValid();					// We need to tell it to check our values.
-			break;
+			case 2	: latLon.setLatValue(inParam);	break;
+			case 3	: latLon.setLatQuad(inParam);		break;
+			case 4	: latLon.setLonValue(inParam);	break;
+			case 5	: latLon.setLonQuad(inParam);		break;
 			case 6	:
 				rawQ = atoi(inParam);
 				if (rawQ==0) {
