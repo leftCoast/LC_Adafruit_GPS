@@ -928,7 +928,6 @@ bool GPSReader::canHandle(const char* param) {
 
 bool GPSReader::addValue(char* param,int paramIndex,bool isLast) {
 
-
 	if (theHandler>=0) {
 		if (handlers[theHandler]) {
 			return handlers[theHandler]->decodeParam(param,paramIndex,isLast);
