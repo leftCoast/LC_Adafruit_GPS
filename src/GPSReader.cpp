@@ -831,7 +831,7 @@ void GPRMC::showData(void) {
 // **********************************************
 
 
-GPSReader* ourGPS;
+GPSReader* ourGPS = NULL;	// If it's NULL, it's not been allocated.
 
 
 
